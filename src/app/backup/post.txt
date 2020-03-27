@@ -1,0 +1,109 @@
+post-create.component.html
+
+<mat-card>
+  <mat-spinner *ngIf="isLoading"></mat-spinner>
+  <form [formGroup]="form" (submit)="onSavePost()" *ngIf="!isLoading">
+    <mat-form-field>
+      <input
+        matInput
+        type="text"
+        formControlName="title"
+        placeholder="Post Title">
+        <mat-error *ngIf="form.get('title').invalid">Please enter a valid post title.</mat-error>
+    </mat-form-field>
+    <div>
+      <button mat-stroked-button type="button" (click)="filepicker.click()">Pic Image</button>
+      <input type="file" #filepicker/>
+    </div>
+    <mat-form-field>
+      <textarea
+        matInput
+        rows="6"
+        formControlName="content"
+        placeholder="Post Content"
+        ></textarea>
+        <mat-error *ngIf="form.get('content').invalid">Please enter a valid content.</mat-error>
+    </mat-form-field>
+    <button
+      mat-raised-button
+      color="accent"
+      type="submit"> Save Post </button>
+  </form>
+</mat-card>
+
+// post-create.component.ts
+
+import { Component, OnInit } from '@angular/core';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { PostService } from '../posts.service';
+import { ActivatedRoute, ParamMap } from '@angular/router';
+import { Post } from '../post.model';
+
+@Component({
+  selector: 'app-post-create',
+  templateUrl: './post-create.component.html',
+  styleUrls: ['./post-create.component.css']
+})
+
+export class PostCreateComponent implements OnInit {
+
+  enteredTitle = '';
+  enteredContent = '';
+  post: Post;
+  form: FormGroup;
+  isLoading = false;
+  private mode = 'create';
+  private postId: string;
+
+  constructor(public postService: PostService, public router: ActivatedRoute) {}
+
+  ngOnInit() {
+    this.form = new FormGroup({
+      title: new FormControl(null, {
+        validators: [Validators.required, Validators.minLength(3)]
+      }),
+      çontent: new FormControl(null, {validators: [Validators.required]})
+    });
+
+    this.router.paramMap.subscribe((paramMap: ParamMap) => {
+      if (paramMap.has('postId')) {
+        this.mode = 'edit';
+        this.postId = paramMap.get('postId');
+        // this.post = this.postService.getPost(this.postId);
+        this.isLoading = true;
+        this.postService.getPost(this.postId).subscribe(postData => {
+          this.isLoading = false;
+          this.post = {
+            id: postData._id,
+            title: postData.title,
+            content: postData.content
+          };
+          this.form.setValue({
+            title: this.post.title,
+            content: this.post.content
+          });
+        });
+      } else {
+        this.mode = 'create';
+        this.postId = null;
+      }
+    });
+  }
+
+  onSavePost() {
+    if (this.form.invalid) {
+      return;
+    }
+    this.isLoading = true;
+    if (this.mode === 'create') {
+      this.postService.addPost(this.form.value.title, this.form.value.content);
+    } else {
+      this.postService.updatePost(
+        this.postId,
+        this.form.value.title,
+        this.form.value.content
+      );
+    }
+    this.form.reset();
+  }
+}

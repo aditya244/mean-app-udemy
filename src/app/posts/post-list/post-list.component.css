@@ -1,0 +1,13 @@
+
+.mat-spinner {
+  margin: auto;
+}
+
+.info-text{
+  text-align: center;
+}
+
+:host{
+  display: block;
+  margin-top: 1rem;
+};
