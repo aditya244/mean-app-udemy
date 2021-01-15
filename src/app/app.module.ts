@@ -29,9 +29,8 @@ import { AppRoutingModule } from './app-routing.module';
   imports: [
     BrowserModule,
     ReactiveFormsModule,
-    FormsModule,
     BrowserAnimationsModule,
-      MatInputModule,
+    MatInputModule,
     MatCardModule,
     MatButtonModule,
     MatToolbarModule,
